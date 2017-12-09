@@ -59,7 +59,6 @@ namespace move_base
         src_map_ = src_map;
 
         plan_thread = std::thread(&MoveBase::planThread, this);
-        plan_thread.detach();
 
         //set up plan triple buffer
         planner_plan_ = new std::vector<POSE>();
@@ -89,6 +88,9 @@ namespace move_base
     MoveBase::~MoveBase()
     {
         running_ = false;
+
+        if(plan_thread.joinable())
+            plan_thread.join();
 
         if (planner_costmap_ != NULL)
             delete planner_costmap_;
