@@ -12,23 +12,32 @@ namespace nav_core
 {
     typedef base_info::StampedPose POSE;
 
-    enum OrientationMode { NONE, FORWARD, INTERPOLATE, FORWARDTHENINTERPOLATE };
+    enum OrientationMode
+    {
+        NONE, FORWARD, INTERPOLATE, FORWARDTHENINTERPOLATE
+    };
 
     class OrientationFilter
     {
     public:
-        OrientationFilter() : omode_(NONE) {}
+        OrientationFilter() : omode_(NONE)
+        {}
 
 
-        void processPath(const POSE& start,
-                                 std::vector<POSE>& path);
+        void processPath(const POSE &start,
+                         std::vector<POSE> &path);
 
-        void pointToNext(std::vector<POSE>& path, int index);
-        void interpolate(std::vector<POSE>& path,
+        void pointToNext(std::vector<POSE> &path, int index);
+
+        void interpolate(std::vector<POSE> &path,
                          int start_index, int end_index);
 
-        void setMode(OrientationMode new_mode){ omode_ = new_mode; }
-        void setMode(int new_mode){ setMode((OrientationMode) new_mode); }
+        void setMode(OrientationMode new_mode)
+        { omode_ = new_mode; }
+
+        void setMode(int new_mode)
+        { setMode((OrientationMode) new_mode); }
+
     protected:
         OrientationMode omode_;
     };

@@ -9,7 +9,7 @@ namespace costmap_core
 // just initialize everything to NULL by default
     Costmap2D::Costmap2D() :
             size_x_(0), size_y_(0),
-            resolution_(0.0), origin_x_(0.0), origin_y_(0.0),
+            resolution_(1.0), origin_x_(0.0), origin_y_(0.0),
             costmap_(NULL)
     {
         access_ = new mutex_t();
@@ -186,6 +186,7 @@ namespace costmap_core
     void Costmap2D::mapToWorld(unsigned int mx, unsigned int my,
                                double &wx, double &wy) const
     {
+        //convert_offset_ = 0.5
         wx = origin_x_ + (mx + 0.5) * resolution_;
         wy = origin_y_ + (my + 0.5) * resolution_;
     }

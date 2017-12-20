@@ -2,19 +2,11 @@ package com.bmhri.gvp.agvp;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
-
-import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -27,6 +19,8 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    Button btn_init;
+    Button btn_plan;
     Button btn_start;
     Button btn_stop;
     MapView mapView = null;
@@ -49,12 +43,27 @@ public class MainActivity extends AppCompatActivity {
 
         mapView = (MapView) findViewById(R.id.loc_map);
 
+        btn_init = (Button) findViewById(R.id.btn_init);
+        btn_init.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mapView.initRobot();
+            }
+        });
+
+        btn_plan = (Button) findViewById(R.id.btn_plan);
+        btn_plan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mapView.planning();
+            }
+        });
+
         btn_start = (Button) findViewById(R.id.btn_start);
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mapView.start();
-                Log.i(TAG, "Click L");
             }
         });
 
@@ -62,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         btn_stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG, "Click R");
+                mapView.stoprobo();
             }
         });
     }
@@ -71,7 +80,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         // Remove all Runnable and Message.
         super.onDestroy();
-
-        Log.i(TAG, "Background thread destroyed");
     }
 }

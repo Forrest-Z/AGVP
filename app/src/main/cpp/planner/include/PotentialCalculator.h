@@ -12,7 +12,7 @@ namespace nav_core
     class PotentialCalculator
     {
     public:
-        PotentialCalculator(int nx, int ny)
+        PotentialCalculator(unsigned int nx, unsigned int ny)
         {
             setSize(nx, ny);
         }
@@ -37,7 +37,7 @@ namespace nav_core
          * @param nx The x size of the map
          * @param ny The y size of the map
          */
-        virtual void setSize(int nx, int ny)
+        virtual void setSize(unsigned int nx, unsigned int ny)
         {
             nx_ = nx;
             ny_ = ny;
@@ -45,12 +45,12 @@ namespace nav_core
         } /**< sets or resets the size of the map */
 
     protected:
-        inline int toIndex(int x, int y)
+        inline int toIndex(unsigned int x, unsigned int y)
         {
             return x + nx_ * y;
         }
 
-        int nx_, ny_, ns_; /**< size of grid, in pixels */
+        unsigned int nx_, ny_, ns_; /**< size of grid, in pixels */
     };
 }
 

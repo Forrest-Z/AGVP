@@ -23,6 +23,18 @@
         tools:context="com.bmhri.gvp.agvp.MainActivity">
 
         <Button
+            android:id="@+id/btn_init"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/str_init"/>
+
+        <Button
+            android:id="@+id/btn_plan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/str_plan"/>
+
+        <Button
             android:id="@+id/btn_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -33,5 +45,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/str_stop"/>
+
     </LinearLayout>
 </FrameLayout>

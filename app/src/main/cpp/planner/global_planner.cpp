@@ -10,14 +10,18 @@
 namespace nav_core
 {
     GlobalPlanner::GlobalPlanner() :
-            costmap_(NULL), initialized_(false), allow_unknown_(true)
+            costmap_(NULL), initialized_(false), allow_unknown_(true),
+            p_calc_(NULL), planner_(NULL),
+            path_maker_(NULL),orientation_filter_(NULL)
     {
 
     }
 
     GlobalPlanner::GlobalPlanner(costmap_core::Costmap2D *costmap,
                                  int frame_id) :
-            costmap_(NULL), initialized_(false), allow_unknown_(true)
+            costmap_(NULL), initialized_(false), allow_unknown_(true),
+            p_calc_(NULL), planner_(NULL),
+            path_maker_(NULL),orientation_filter_(NULL)
     {
         //initialize the planner
         initialize(costmap, frame_id);
@@ -25,13 +29,15 @@ namespace nav_core
 
     GlobalPlanner::~GlobalPlanner()
     {
-        if (p_calc_)
+        if (costmap_ != NULL)
+            delete costmap_;
+        if (p_calc_ != NULL)
             delete p_calc_;
-        if (planner_)
+        if (planner_ != NULL)
             delete planner_;
-        if (path_maker_)
+        if (path_maker_ != NULL)
             delete path_maker_;
-        if (orientation_filter_)
+        if (orientation_filter_ != NULL)
             delete orientation_filter_;
     }
 
@@ -48,13 +54,8 @@ namespace nav_core
             costmap_ = costmap;
             frame_id_ = frame_id;
 
-            unsigned int cx = costmap->getSizeInCellsX(),
+            u_int cx = costmap->getSizeInCellsX(),
                     cy = costmap->getSizeInCellsY();
-
-            if (!old_navfn_behavior_)
-                convert_offset_ = 0.5;
-            else
-                convert_offset_ = 0.0;
 
             p_calc_ = new QuadraticCalculator(cx, cy);
             planner_ = new AStarExpansion(p_calc_, cx, cy);
@@ -83,8 +84,7 @@ namespace nav_core
         double wx = start.x();
         double wy = start.y();
 
-        unsigned int start_x_i, start_y_i, goal_x_i, goal_y_i;
-        double start_x, start_y, goal_x, goal_y;
+        u_int start_x_i, start_y_i, goal_x_i, goal_y_i;
 
         if (!costmap_->worldToMap(wx, wy, start_x_i, start_y_i))
         {
@@ -92,15 +92,6 @@ namespace nav_core
                          " Planning will always fail, "
                          "are you sure the robot has been properly localized?");
             return false;
-        }
-
-        if (old_navfn_behavior_)
-        {
-            start_x = start_x_i;
-            start_y = start_y_i;
-        } else
-        {
-            worldToMap(wx, wy, start_x, start_y);
         }
 
         wx = goal.x();
@@ -113,19 +104,13 @@ namespace nav_core
                          " Planning will always fail to this goal.");
             return false;
         }
-        if (old_navfn_behavior_)
-        {
-            goal_x = goal_x_i;
-            goal_y = goal_y_i;
-        } else
-            worldToMap(wx, wy, goal_x, goal_y);
 
         //clear the starting cell within the costmap
         //because we know it can't be an obstacle
         POSE start_pose;
         clearRobotCell(start_pose, start_x_i, start_y_i);
 
-        int nx = costmap_->getSizeInCellsX(), ny = costmap_->getSizeInCellsY();
+        u_int nx = costmap_->getSizeInCellsX(), ny = costmap_->getSizeInCellsY();
 
         //make sure to resize the underlying array that Navfn uses
         p_calc_->setSize(nx, ny);
@@ -133,40 +118,43 @@ namespace nav_core
         path_maker_->setSize(nx, ny);
         potential_array_ = new double[nx * ny];
 
-        outlineMap(costmap_->getCharMap(), nx, ny, 0);
+        outlineMap(costmap_->getCharMap(), nx, ny, costmap_core::LETHAL_OBSTACLE);
 
         bool found_legal =
                 planner_->calculatePotentials(costmap_->getCharMap(),
-                                              start_x, start_y, goal_x, goal_y,
+                                              start_x_i, start_y_i, goal_x_i, goal_y_i,
                                               nx * ny * 2, potential_array_);
-
-        if (!old_navfn_behavior_)
-            planner_->clearEndpoint(costmap_->getCharMap(),
-                                    potential_array_, goal_x_i, goal_y_i, 2);
+        LOGI("128:%d", found_legal);
+        planner_->clearEndpoint(costmap_->getCharMap(),
+                                potential_array_, goal_x_i, goal_y_i, 2);
 
         if (found_legal)
         {
             //extract the plan
-            if (getPlanFromPotential(start_x, start_y, goal_x, goal_y, goal, plan))
+            LOGI("135");
+            if (getPlanFromPotential(start_x_i, start_y_i,
+                                     goal_x_i, goal_y_i,
+                                     goal, plan))
             {
                 //make sure the goal we push on has the same timestamp
                 //as the rest of the plan
+
                 POSE goal_copy = goal;
                 plan.push_back(goal_copy);
             }
         }
-
+        LOGI("145");
         // add orientations if needed
-        orientation_filter_->processPath(start, plan);
+        //orientation_filter_->processPath(start, plan);
 
         delete potential_array_;
         return !plan.empty();
     }
 
-    void GlobalPlanner::outlineMap(unsigned char *costarr,
-                                   int nx, int ny, unsigned char value)
+    void GlobalPlanner::outlineMap(u_char *costarr,
+                                   int nx, int ny, u_char value)
     {
-        unsigned char *pc = costarr;
+        u_char *pc = costarr;
         for (int i = 0; i < nx; i++)
             *pc++ = value;
         pc = costarr + (ny - 1) * nx;
@@ -181,8 +169,8 @@ namespace nav_core
     }
 
     bool
-    GlobalPlanner::getPlanFromPotential(double start_x, double start_y,
-                                        double goal_x, double goal_y,
+    GlobalPlanner::getPlanFromPotential(u_int start_x, u_int start_y,
+                                        u_int goal_x, u_int goal_y,
                                         const POSE &goal, std::vector<POSE> &plan)
     {
         if (!initialized_)
@@ -197,22 +185,26 @@ namespace nav_core
         //clear the plan, just in case
         plan.clear();
 
-        std::vector<std::pair<double, double>> path;
+
 
         if (!path_maker_->getPath(potential_array_, start_x, start_y,
-                                  goal_x, goal_y, path))
+                                  goal_x, goal_y, path_))
         {
-            LOGI("NO PATH!");
+            LOGI("path_maker:NO PATH!");
             return false;
         }
 
         time_t plan_time = time(NULL);
-        for (unsigned long i = path.size() - 1; i >= 0; i--)
+
+        u_long path_size = path_.size();
+
+        for (u_long i = 1; i < path_size; i++)
         {
-            std::pair<float, float> point = path[i];
+            std::pair<u_int, u_int> point = path_[i - 1];
             //convert the plan to world coordinates
             double world_x, world_y;
-            mapToWorld(point.first, point.second, world_x, world_y);
+
+            costmap_->mapToWorld(point.first, point.second, world_x, world_y);
 
             base_info::StampedPose pose;
             pose.stamp_ = plan_time;
@@ -222,37 +214,12 @@ namespace nav_core
             pose.z() = 0.0;
             plan.push_back(pose);
         }
-        if (old_navfn_behavior_)
-        {
-            plan.push_back(goal);
-        }
+
         return !plan.empty();
     }
 
-    void GlobalPlanner::mapToWorld(double mx, double my, double &wx, double &wy)
-    {
-        wx = costmap_->getOriginX() + (mx + convert_offset_)
-                                      * costmap_->getResolution();
-        wy = costmap_->getOriginY() + (my + convert_offset_)
-                                      * costmap_->getResolution();
-    }
-
-    bool GlobalPlanner::worldToMap(double wx, double wy, double &mx, double &my)
-    {
-        double origin_x = costmap_->getOriginX(), origin_y = costmap_->getOriginY();
-        double resolution = costmap_->getResolution();
-
-        if (wx < origin_x || wy < origin_y)
-            return false;
-
-        mx = (wx - origin_x) / resolution - convert_offset_;
-        my = (wy - origin_y) / resolution - convert_offset_;
-
-        return mx < costmap_->getSizeInCellsX() && my < costmap_->getSizeInCellsY();
-
-    }
-
-    void GlobalPlanner::clearRobotCell(const POSE &global_pose, unsigned int mx, unsigned int my)
+    void GlobalPlanner::clearRobotCell(const POSE &global_pose,
+                                       u_int mx, u_int my)
     {
         if (!initialized_)
         {

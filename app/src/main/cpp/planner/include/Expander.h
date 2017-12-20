@@ -26,9 +26,9 @@ namespace nav_core
         {}
 
         virtual bool calculatePotentials(unsigned char *costs,
-                                         double start_x, double start_y,
-                                         double end_x, double end_y,
-                                         int cycles, double *potential) = 0;
+                                         unsigned int start_x, unsigned int start_y,
+                                         unsigned int end_x, unsigned int end_y,
+                                         unsigned int cycles, double *potential) = 0;
 
         /**
          * @brief  Sets or resets the size of the map
@@ -39,10 +39,10 @@ namespace nav_core
         {
             nx_ = nx;
             ny_ = ny;
-            ns_ = nx * ny;
+            ns_ = nx_ * ny_;
         } /**< sets or resets the size of the map */
 
-        void setLethalCost(unsigned char lethal_cost)
+        /*void setLethalCost(unsigned char lethal_cost)
         {
             lethal_cost_ = lethal_cost;
         }
@@ -55,7 +55,7 @@ namespace nav_core
         void setFactor(double factor)
         {
             factor_ = factor;
-        }
+        }*/
 
         void setHasUnknown(bool unknown)
         {
@@ -63,9 +63,9 @@ namespace nav_core
         }
 
         void clearEndpoint(unsigned char *costs, double *potential,
-                           int gx, int gy, int s)
+                           unsigned int gx, unsigned int gy, int s)
         {
-            int startCell = toIndex(gx, gy);
+            unsigned int startCell = toIndex(gx, gy);
             for (int i = -s; i <= s; i++)
             {
                 for (int j = -s; j <= s; j++)
@@ -81,7 +81,7 @@ namespace nav_core
         }
 
     protected:
-        inline int toIndex(int x, int y)
+        inline unsigned int toIndex(unsigned int x, unsigned int y)
         {
             return x + nx_ * y;
         }
@@ -89,7 +89,7 @@ namespace nav_core
         int nx_, ny_, ns_; /**< size of grid, in pixels */
         bool unknown_;
         unsigned char lethal_cost_, neutral_cost_;
-        int cells_visited_;
+        //int cells_visited_;
         double factor_;
         PotentialCalculator *p_calc_;
     };

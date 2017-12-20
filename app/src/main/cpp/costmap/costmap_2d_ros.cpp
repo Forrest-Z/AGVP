@@ -19,7 +19,7 @@ namespace costmap_core
             layered_costmap_(NULL), plugin_static_(NULL),
             plugin_obstacle_(NULL), plugin_inflation_(NULL), tf_(tf),
             stop_updates_(false), initialized_(true), stopped_(false),
-            robot_stopped_(false), map_update_thread_(NULL)
+            robot_stopped_(false), map_update_thread_(NULL), transform_tolerance_(1)
     {
         // make sure that we set the frames appropriately based on the tf_prefix
         // （1）Costmap初始化首先获得全局坐标系和机器人坐标系的转换
@@ -71,13 +71,15 @@ namespace costmap_core
     Costmap2DROS::~Costmap2DROS()
     {
         map_update_thread_shutdown_ = true;
-        if (map_update_thread_ != NULL)
+        if (map_update_thread_->joinable())
         {
             map_update_thread_->join();
-            delete map_update_thread_;
+            if (map_update_thread_ != NULL)
+                delete map_update_thread_;
         }
 
-        moment_thread_.join();
+        if (moment_thread_.joinable())
+            moment_thread_.join();
 
         delete layered_costmap_;
         layered_costmap_ = NULL;
@@ -134,7 +136,7 @@ namespace costmap_core
                 layered_costmap_->getBounds(&x0, &xn, &y0, &yn);
                 updateBounds(x0, xn, y0, yn);
             }
-            sleep(50);
+            usleep(500);
         }
     }
 
@@ -189,7 +191,7 @@ namespace costmap_core
 
         // block until the costmap is re-initialized. meaning one update cycle has run
         //while (!initialized_)
-            //sleep(100);
+        //sleep(100);
     }
 
     void Costmap2DROS::stop()
@@ -220,7 +222,7 @@ namespace costmap_core
         // block until the costmap is re-initialized.. meaning one update cycle has run
         //ros::Rate r(100.0);
         while (!initialized_)
-            sleep(100);
+            usleep(100);
     }
 
 
@@ -271,7 +273,7 @@ namespace costmap_core
 
     void Costmap2DROS::reconfigureCB()
     {
-        transform_tolerance_ = 0.1;
+        transform_tolerance_ = 1;
         if (map_update_thread_ != NULL)
         {
             map_update_thread_shutdown_ = true;
@@ -282,9 +284,9 @@ namespace costmap_core
         double map_update_frequency = 0.1;
 
         // find size parameters
-        double map_width_meters = 480,
-                map_height_meters = 640,
-                resolution = 1024,
+        double map_width_meters = 255,
+                map_height_meters = 230,
+                resolution = 1,
                 origin_x = 0,
                 origin_y = 0;
 

@@ -5,7 +5,8 @@
 
     <string name="str_id">任务</string>
     <string name="str_goal">目的</string>
-    <string name="str_init">初始化</string>
+    <string name="str_init">初始</string>
+    <string name="str_plan">路线</string>
     <string name="str_start">开始</string>
     <string name="str_stop">停止</string>
     <string name="str_map_des">maps description</string>

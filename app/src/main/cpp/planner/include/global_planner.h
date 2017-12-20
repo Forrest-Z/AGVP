@@ -76,10 +76,12 @@ namespace nav_core
          * @param plan The plan... filled by the planner
          * @return True if a valid plan was found, false otherwise
          */
-        bool getPlanFromPotential(double start_x, double start_y,
-                                  double goal_x, double goal_y,
+        bool getPlanFromPotential(u_int start_x, u_int start_y,
+                                  u_int goal_x, u_int goal_y,
                                   const POSE &goal,
                                   std::vector<POSE> &plan);
+
+        std::vector<std::pair<u_int, u_int>> path_;
 
     protected:
 
@@ -92,12 +94,13 @@ namespace nav_core
         bool initialized_, allow_unknown_;
 
     private:
-        void mapToWorld(double mx, double my, double &wx, double &wy);
-        bool worldToMap(double wx, double wy, double &mx, double &my);
-        void clearRobotCell(const POSE& global_pose, unsigned int mx, unsigned int my);
-        void outlineMap(unsigned char* costarr, int nx, int ny, unsigned char value);
 
-        double planner_window_x_, planner_window_y_, default_tolerance_;
+        void clearRobotCell(const POSE& global_pose, u_int mx, u_int my);
+
+        //将costmap的四个边的全部cell都设置为LETHAL_OBSTACLE
+        void outlineMap(u_char* costarr, int nx, int ny, u_char value);
+
+        //double planner_window_x_, planner_window_y_, default_tolerance_;
 
         std::mutex mutex_;
 
@@ -106,12 +109,10 @@ namespace nav_core
         Traceback *path_maker_;
         OrientationFilter *orientation_filter_;
 
-        unsigned char *cost_array_;
+        //u_char *cost_array_;
         double *potential_array_;
-        unsigned int start_x_, start_y_, end_x_, end_y_;
+        //u_int start_x_, start_y_, end_x_, end_y_;
 
-        bool old_navfn_behavior_;
-        float convert_offset_;
     };
 };
 

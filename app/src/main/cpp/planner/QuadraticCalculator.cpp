@@ -6,13 +6,13 @@
 
 namespace nav_core
 {
-    float QuadraticCalculator::calculatePotential(float *potential,
-                                                  unsigned char cost,
-                                                  int n,
-                                                  float prev_potential)
+    double QuadraticCalculator::calculatePotential(double *potential,
+                                                   unsigned char cost,
+                                                   int n,
+                                                   double prev_potential)
     {
         // get neighbors
-        float u, d, l, r;
+        double u, d, l, r;
         l = potential[n - 1];
         r = potential[n + 1];
         u = potential[n - nx_];
@@ -22,7 +22,7 @@ namespace nav_core
         //  ROS_INFO("[Update] cost: %d\n", costs[n]);
 
         // find lowest, and its lowest neighbor
-        float ta, tc;
+        double ta, tc;
 
         if (l < r)
             tc = l;
@@ -33,8 +33,8 @@ namespace nav_core
         else
             ta = d;
 
-        float hf = cost; // traversability factor
-        float dc = tc - ta;        // relative cost between ta,tc
+        double hf = cost; // traversability factor
+        double dc = tc - ta;        // relative cost between ta,tc
         if (dc < 0)         // tc is lowest
         {
             dc = -dc;
@@ -49,8 +49,8 @@ namespace nav_core
             // use quadratic approximation
             // might speed this up through table lookup, but still have to
             //   do the divide
-            float df = dc / hf;
-            float v = static_cast<float >(-0.2301 * df * df + 0.5307 * df + 0.7040);
+            double df = dc / hf;
+            double v = -0.2301 * df * df + 0.5307 * df + 0.7040;
             return ta + hf * v;
         }
     }

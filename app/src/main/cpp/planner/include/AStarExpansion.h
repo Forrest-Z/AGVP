@@ -13,13 +13,13 @@
 class Index
 {
 public:
-    Index(int a, double b)
+    Index(unsigned int a, double b)
     {
         i = a;
         cost = b;
     }
 
-    int i;
+    unsigned int i;
     double cost;
 };
 
@@ -39,14 +39,15 @@ namespace nav_core
         AStarExpansion(PotentialCalculator *p_calc, int nx, int ny);
 
         bool calculatePotentials(unsigned char *costs,
-                                 double start_x, double start_y,
-                                 double end_x, double end_y,
-                                 int cycles,
+                                 unsigned int start_x, unsigned int start_y,
+                                 unsigned int end_x, unsigned int end_y,
+                                 unsigned int cycles,
                                  double *potential);
 
     private:
         void add(unsigned char *costs, double *potential,
-                 double prev_potential, int next_i, int end_x, int end_y);
+                 double prev_potential, unsigned int next_i,
+                 unsigned int end_x, unsigned int end_y);
 
         std::vector<Index> queue_;
     };

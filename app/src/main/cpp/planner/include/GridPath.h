@@ -17,9 +17,9 @@ namespace nav_core
         {}
 
         bool getPath(double *potential,
-                     double start_x, double start_y,
-                     double end_x, double end_y,
-                     std::vector<std::pair<double, double> > &path);
+                     unsigned int start_x, unsigned int start_y,
+                     unsigned int end_x, unsigned int end_y,
+                     std::vector<std::pair<unsigned int, unsigned int> > &path);
     };
 
 } //end namespace nav_core

@@ -8,8 +8,7 @@ using namespace base_info;
 
 namespace transform2
 {
-    Transformer::Transformer(time_t cache_time_) :
-            tf2_buffer_(6)
+    Transformer::Transformer(time_t cache_time_)
     {
         StampedTransform transform = StampedTransform();
         Eigen::Isometry3d temp = Eigen::Isometry3d::Identity();;

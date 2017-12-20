@@ -21,29 +21,29 @@ namespace nav_core
         }
 
         virtual bool getPath(double *potential,
-                             double start_x, double start_y,
-                             double end_x, double end_y,
-                             std::vector<std::pair<double, double> > &path) = 0;
+                             unsigned int start_x, unsigned int start_y,
+                             unsigned int end_x, unsigned int end_y,
+                             std::vector<std::pair<unsigned int, unsigned int> > &path) = 0;
 
-        virtual void setSize(int xs, int ys)
+        virtual void setSize(unsigned int xs, unsigned int ys)
         {
             xs_ = xs;
             ys_ = ys;
         }
 
-        inline int getIndex(int x, int y)
+        inline unsigned int getIndex(unsigned int x, unsigned int y)
         {
             return x + y * xs_;
         }
 
-        void setLethalCost(unsigned char lethal_cost)
+        /*void setLethalCost(unsigned char lethal_cost)
         {
             lethal_cost_ = lethal_cost;
-        }
+        }*/
 
     protected:
-        int xs_, ys_;
-        unsigned char lethal_cost_;
+        unsigned int xs_, ys_;
+        //unsigned char lethal_cost_;
         PotentialCalculator *p_calc_;
     };
 

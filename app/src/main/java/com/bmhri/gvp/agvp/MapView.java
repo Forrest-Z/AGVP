@@ -6,23 +6,23 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 
 import java.io.File;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static com.bmhri.gvp.agvp.Running_state.INITING;
 import static com.bmhri.gvp.agvp.Running_state.MOVING;
 import static com.bmhri.gvp.agvp.Running_state.PLANNING;
+import static com.bmhri.gvp.agvp.Running_state.STOPED;
 
 /**
  * Created by shydh on 11/27/17.
+ * SurfaceView
  */
 
 //子线程标志位，用来控制子线程
@@ -39,26 +39,17 @@ public class MapView extends SurfaceView
     static final String TAG = "SurfaceView";
 
     private String sdDir;
-    private int iw, ih;
-    private int[] pix;
+
     private TaskLab mTaskLab;
     private TaskItem mTaskItem;
-    private double m_x = 0.0, m_y = 0.0, m_angle = 0.0;
 
     int scalX, scalY;
 
-    //init计数
-    int count;
     //可以控制SurfaceView的大小，格式，可以监控或者改变SurfaceView
     SurfaceHolder mSurfaceHolder;
-    //画布
-    Canvas mCanvas;
-
-    //创建画笔对象
-    private Paint mPaint = new Paint();
 
     //子线程标志位，用来控制子线程
-    boolean isDrawing;
+    boolean isMoving;
     Running_state state;
 
     public MapView(Context context, AttributeSet attrs) {
@@ -80,46 +71,40 @@ public class MapView extends SurfaceView
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         freeMoveBase();
-        isDrawing = false;
+        isMoving = false;
     }
 
     @Override
     public void run() {
-        Log.i(TAG, "running!!");
-        while (isDrawing) {
-            switch (state) {
-                case INITING:
-                    if (count == 1) {
-                        getMap();
-                        drawing();
-                        Log.i(TAG, "initing!!");
-                    }
-                    count++;
-                    state = PLANNING;
-                    break;
-                case PLANNING:
-                    if (count == 2) {
-                        Log.i(TAG, "planning!!");
-                        initRobo();
-                    }
-                    count++;
-                    state = MOVING;
-                    break;
-                case MOVING:
+        switch (state) {
+            case INITING:
+                getMap();
+                if (initRobo()) {
+                    //drawing();
+                    Log.i(TAG, "initing!!");
+                }
+                break;
+            case PLANNING:
+                Log.i(TAG, "planning!!");
+                if(planMoveBase()) {
+                    loadPath(mSurfaceHolder.getSurface(), scalX, scalY);
+                }
+                break;
+            case MOVING:
+                while (isMoving) {
                     Log.i(TAG, "moving!!");
-                    break;
-                case STOPED:
-                    Log.i(TAG, "stoped!!");
-                    break;
-                default:
-                    break;
-            }
-
-            try {
-                Thread.sleep(1000);//睡眠时间为1秒
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                    try {
+                        Thread.sleep(1000);//睡眠时间为1秒
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case STOPED:
+                Log.i(TAG, "stoped!!");
+                break;
+            default:
+                break;
         }
     }
 
@@ -130,70 +115,25 @@ public class MapView extends SurfaceView
         setFocusableInTouchMode(true);
         this.setKeepScreenOn(true);//保持屏幕长亮
 
-        //画笔
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
-        mPaint.setStrokeWidth(10f);
-        mPaint.setColor(Color.parseColor("#FF4081"));
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeJoin(Paint.Join.ROUND);
-        mPaint.setStrokeCap(Paint.Cap.ROUND);
-
-        count = 1;
-        isDrawing = true;
+        isMoving = false;
         state = INITING;
     }
 
-    public void drawing() {
-        Log.i(TAG, "drawing!!");
-
-        Bitmap srcBitmap =
-                Bitmap.createBitmap(iw, ih, Bitmap.Config.ARGB_4444);
-        srcBitmap.setPixels(pix, 0, iw, 0, 0, iw, ih);
-
-        // 锁定画布
-        mCanvas = mSurfaceHolder.lockCanvas();
-
-        //这里进行内容的绘制
-        mCanvas.save();
-        Matrix matrix = new Matrix();
-
-        int width = srcBitmap.getWidth();// 获取资源位图的宽
-        int height = srcBitmap.getHeight();// 获取资源位图的高
-        float w = (float) scalX / (float) width;
-        float h = (float) scalY / (float) height;
-        matrix.setScale(w, h);
-
-        // 初始化画布
-        mCanvas.drawColor(Color.TRANSPARENT);
-        //绘制图形
-        mCanvas.drawBitmap(srcBitmap, matrix, mPaint);
-        mCanvas.restore();
-        // 解锁画布
-        getHolder().unlockCanvasAndPost(mCanvas);
-    }
-
-    private void startRobo() {
-
-    }
-
-    private void initRobo() {
+    private boolean initRobo() {
         mTaskLab = TaskLab.get();
         mTaskItem = mTaskLab.getTask();
         Log.i(TAG, "Got a goal: " + mTaskItem.getId());
 
-        double[] current = {0, 0, 0};
-        double[] goal = {128, 128, 128};
+        double[] current = {60, 200, 0};
+        double[] goal = {180, 128, 0};
 
-        if(initMoveBase(current, goal))
+        if (initMoveBase(current, goal)) {
             Log.i(TAG, "Move_base inited!! ");
-        else
+            return true;
+        } else {
             Log.i(TAG, "Move_base failed initial!!  ");
-
-        Log.i(TAG, "initRobo finished!");
-    }
-
-    private void getPose() {
-
+            return false;
+        }
     }
 
     private void getMap() {
@@ -201,11 +141,8 @@ public class MapView extends SurfaceView
 
         PGMLoader pgm = new PGMLoader();
         pgm.readPGMHeader(sdDir);
-        iw = pgm.getWidth();
-        ih = pgm.getHeight();
 
-        pix = new int[iw * ih];
-        loadIMG(sdDir, pix, iw, ih);
+        loadIMG(sdDir, mSurfaceHolder.getSurface(), scalX, scalY);
     }
 
     private void getSDPath() {
@@ -219,7 +156,27 @@ public class MapView extends SurfaceView
         }
     }
 
+    public void initRobot() {
+        isMoving = false;
+        state = INITING;
+        new Thread(this).start();
+    }
+
+    public void planning() {
+        isMoving = false;
+        state = PLANNING;
+        new Thread(this).start();
+    }
+
     public void start() {
+        isMoving = true;
+        state = MOVING;
+        new Thread(this).start();
+    }
+
+    public void stoprobo() {
+        isMoving = false;
+        state = STOPED;
         new Thread(this).start();
     }
 
@@ -227,9 +184,13 @@ public class MapView extends SurfaceView
      * A native method that is implemented by the 'native-lib' native library,
      * which is packaged with this application.
      */
-    public native void loadIMG(String strDir, int[] src_image, int w, int h);
+    public native void loadIMG(String strDir, Surface surface, int w, int h);
+
+    public native void loadPath(Surface surface, int w, int h);
 
     public native void freeMoveBase();
 
     public native boolean initMoveBase(double[] current, double[] goal);
+
+    public native boolean planMoveBase();
 }

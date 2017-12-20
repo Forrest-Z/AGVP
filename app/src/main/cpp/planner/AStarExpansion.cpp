@@ -13,14 +13,14 @@ namespace nav_core
     }
 
     bool AStarExpansion::calculatePotentials(unsigned char *costs,
-                                             double start_x,
-                                             double start_y,
-                                             double end_x,
-                                             double end_y,
-                                             int cycles, double *potential)
+                                             unsigned int start_x,
+                                             unsigned int start_y,
+                                             unsigned int end_x,
+                                             unsigned int end_y,
+                                             unsigned int cycles, double *potential)
     {
         queue_.clear();
-        int start_i = toIndex(int(start_x), int(start_y));
+        unsigned int start_i = toIndex(start_x, start_y);
 
         //push the start point into queue_
         queue_.push_back(Index(start_i, 0));
@@ -30,8 +30,8 @@ namespace nav_core
         //initial the start position at potential as 0
         potential[start_i] = 0;
 
-        int goal_i = toIndex(int(end_x), int(end_y));
-        int cycle = 0;
+        unsigned int goal_i = toIndex(end_x, end_y);
+        unsigned int cycle = 0;
 
         while (queue_.size() > 0 && cycle < cycles)
         {
@@ -43,16 +43,16 @@ namespace nav_core
             queue_.pop_back();
 
             //the Index's i from (i,cost)
-            int i = top.i;
+            unsigned int i = top.i;
             //stop condition
             if (i == goal_i)
                 return true;
 
             //add the neighborhood 4 points into the search scope
-            add(costs, potential, potential[i], i + 1, int(end_x), int(end_y));
-            add(costs, potential, potential[i], i - 1, int(end_x), int(end_y));
-            add(costs, potential, potential[i], i + nx_, int(end_x), int(end_y));
-            add(costs, potential, potential[i], i - nx_, int(end_x), int(end_y));
+            add(costs, potential, potential[i], i + 1, end_x, end_y);
+            add(costs, potential, potential[i], i - 1, end_x, end_y);
+            add(costs, potential, potential[i], i + nx_, end_x, end_y);
+            add(costs, potential, potential[i], i - nx_, end_x, end_y);
 
             cycle++;
         }
@@ -62,7 +62,7 @@ namespace nav_core
 
     void AStarExpansion::add(unsigned char *costs,
                              double *potential, double prev_potential,
-                             int next_i, int end_x, int end_y)
+                             unsigned int next_i, unsigned int end_x, unsigned int end_y)
     {
         if (next_i < 0 || next_i >= ns_)
             return;
@@ -84,6 +84,8 @@ namespace nav_core
                                             costs[next_i] + neutral_cost_,
                                             next_i, prev_potential);
         int x = next_i % nx_, y = next_i / nx_;
+
+        //曼哈顿距离
         float distance = abs(end_x - x) + abs(end_y - y);
 
         //distance * neutral_cost_ means the current to the target

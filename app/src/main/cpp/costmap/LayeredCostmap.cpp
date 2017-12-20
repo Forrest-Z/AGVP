@@ -41,16 +41,16 @@ namespace costmap_core
             {
                 // Update the size of the layered costmap (and all layers, including this one)
                 LOGI("Resizing costmap to %d X %d.", size_x, size_y);
-                resizeMap(size_x, size_y, 1024, 0, 0, true);
+                resizeMap(size_x, size_y, 1.0, 0, 0, true);
             }
 
             unsigned int index = 0;
             unsigned char *tmp = costmap_.getCharMap();
             unsigned char value;
             // initialize the costmap with static data
-            for (unsigned int i = 0; i < size_y; ++i)
+            for (unsigned int i = 0; i < size_x; ++i)
             {
-                for (unsigned int j = 0; j < size_x; ++j)
+                for (unsigned int j = 0; j < size_y; ++j)
                 {
                     value = src_mat->data[index];
                     tmp[index] = interpretValue(value);
@@ -177,13 +177,15 @@ namespace costmap_core
             return NO_INFORMATION;
         else if (!track_unknown_space_ && value == unknown_cost_value_)
             return FREE_SPACE;
-        else if (value >= lethal_threshold_)
+        else if (value <= lethal_threshold_)
             return LETHAL_OBSTACLE;
         else if (trinary_costmap_)
             return FREE_SPACE;
+        else
+            return LETHAL_OBSTACLE;
 
-        double scale = (double) value / lethal_threshold_;
-        return (unsigned char) scale * LETHAL_OBSTACLE;
+        /*double scale = (double) value / lethal_threshold_;
+        return (unsigned char) scale * LETHAL_OBSTACLE;*/
     }
 
     /*************************************************************************/

@@ -4,6 +4,7 @@
 
 #include "include/GridPath.h"
 
+using namespace std;
 /*首先将goal所在的点的(x,y)塞到path，
  * 然后搜索当前的点的四周的四个临近点，
  * 选取这四个临近点的potential的值最小的点min，
@@ -11,32 +12,32 @@
  * 由于start 点的potential的值是0，所以这是个梯度下降的方法。*/
 
 bool nav_core::GridPath::getPath(double *potential,
-                                 double start_x, double start_y,
-                                 double end_x, double end_y,
-                                 std::vector<std::pair<double, double>> &path)
+                                 unsigned int start_x, unsigned int start_y,
+                                 unsigned int end_x, unsigned int end_y,
+                                 vector<pair<unsigned int, unsigned int>> &path)
 {
-    std::pair<double, double> current;
+    pair<unsigned int, unsigned int> current;
     current.first = end_x;
     current.second = end_y;
 
-    int start_index = getIndex(int(start_x), int(start_y));
+    unsigned int start_index = getIndex(start_x, start_y);
 
     path.push_back(current);
-    int c = 0;
-    int ns = xs_ * ys_;
+    unsigned int c = 0;
+    unsigned int ns = xs_ * ys_;
 
-    while (getIndex(int(current.first), int(current.second)) != start_index)
+    while (getIndex(current.first, current.second) != start_index)
     {
         double min_val = 1e10;
-        int min_x = 0, min_y = 0;
+        unsigned int min_x = 0, min_y = 0;
         for (int xd = -1; xd <= 1; xd++)
         {
             for (int yd = -1; yd <= 1; yd++)
             {
                 if (xd == 0 && yd == 0)
                     continue;
-                int x = int(current.first) + xd, y = int(current.second) + yd;
-                int index = getIndex(x, y);
+                unsigned int x = current.first + xd, y = current.second + yd;
+                unsigned int index = getIndex(x, y);
                 if (potential[index] < min_val)
                 {
                     min_val = potential[index];
@@ -45,8 +46,10 @@ bool nav_core::GridPath::getPath(double *potential,
                 }
             }
         }
+
         if (min_x == 0 && min_y == 0)
             return false;
+
         current.first = min_x;
         current.second = min_y;
         path.push_back(current);

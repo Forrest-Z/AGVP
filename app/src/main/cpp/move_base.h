@@ -46,8 +46,11 @@ namespace move_base
         virtual ~MoveBase();
 
         void initCb(double *current, double *goal);
-
+        bool planCb();
         void executeCb();
+
+        std::vector<std::pair<u_int, u_int>> get_plan();
+        cv::Mat src_map_;
 
     private:
         //set up plan triple buffer
@@ -58,21 +61,15 @@ namespace move_base
         //set up the planner's thread
         bool runPlanner_;
         std::mutex planner_mutex_;
-        std::condition_variable planner_cond_;
-        std::thread plan_thread;
+        std::thread plan_thread, excute_thread;
 
         POSE planner_goal_, current_pose_, current_position_, oscillation_pose_;
         double oscillation_distance_;
 
-        bool shutdown_costmaps_, clearing_rotation_allowed_, recovery_behavior_enabled_;
+        bool shutdown_costmaps_;
         bool new_global_plan_, running_;
-        double oscillation_timeout_;
-        time_t last_valid_plan_, last_valid_control_, last_oscillation_reset_;
 
-        double planner_frequency_, controller_frequency_,
-                inscribed_radius_, circumscribed_radius_;
-        time_t planner_patience_, controller_patience_;
-        double conservative_reset_dist_, clearing_radius_;
+        double planner_frequency_, circumscribed_radius_;
 
         base_info::bd_Velocity cmd_vel_;
 
@@ -82,10 +79,6 @@ namespace move_base
 
         transform2::Transformer *tf_;
 
-        std::recursive_mutex configuration_mutex_;
-
-        cv::Mat src_map_;
-
         /**
          * @brief  Performs a control cycle
          * @param goal A reference to the goal to pursue
@@ -94,19 +87,7 @@ namespace move_base
          */
         bool executeCycle(POSE &goal, std::vector<POSE> &global_plan);
 
-        void planThread();
-
-        POSE goalToGlobalFrame(const POSE &goal_pose_msg);
-
         double distance(const POSE &p1, const POSE &p2);
-
-        /**
-       * @brief  A service call that clears the costmaps of obstacles
-       * @param req The service request
-       * @param resp The service response
-       * @return True if the service call succeeds, false otherwise
-       */
-        void clearCostmapsService();
 
         /**
        * @brief  Make a new global plan
@@ -115,18 +96,6 @@ namespace move_base
        * @return  True if planning succeeds, false otherwise
        */
         bool makePlan(const POSE goal, std::vector<POSE> &plan);
-
-        /**
-       * @brief  Clears obstacles within a window around the robot
-       * @param size_x The x size of the window
-       * @param size_y The y size of the window
-       */
-        void clearCostmapWindows(double size_x, double size_y);
-
-        /**
-       * @brief This is used to wake the planner at periodic intervals.
-       */
-        void wakePlanner();
 
         void publishZeroVelocity();
 
