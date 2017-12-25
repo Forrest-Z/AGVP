@@ -10,16 +10,16 @@ cmake_minimum_required(VERSION 3.4.1)
 # 这个是设置了编译C的参数，这里使用C99并开启三级优化
 # 类似的设置还有CMAKE_CPP_FLAGS就是设置编译C++的参数
 # 更多的参数就要根据需要看文档了
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -std=c99")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -std=c99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 add_definitions(-std=c++11)
 #####################################################################
 
 aux_source_directory(./src/main/cpp DIRMAIN)
+aux_source_directory(./src/main/cpp/amcl DIRAMCL)
 aux_source_directory(./src/main/cpp/costmap DIRCOSTMAP)
 aux_source_directory(./src/main/cpp/planner DIRPLANNER)
 aux_source_directory(./src/main/cpp/transform DIRTF)
-aux_source_directory(./src/main/cpp/bfl_core DIRBFL)
 
 #设置OpenCv的路径变量
 set(pathToOpenCv /opt/OpenCV-android-sdk)
@@ -54,10 +54,10 @@ add_library( # Sets the name of the library.
 
              # Provides a relative path to your source file(s).
              ${DIRMAIN}
+             ${DIRAMCL}
              ${DIRCOSTMAP}
              ${DIRPLANNER}
              ${DIRTF}
-             ${DIRBFL}
              )
 
 # Searches for a specified prebuilt library and stores the path as a
