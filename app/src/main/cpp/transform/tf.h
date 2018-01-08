@@ -12,7 +12,7 @@
 #include <sstream>
 #include <map>
 
-#include "../base_info/base_datatypes.h"
+#include "base_datatypes.h"
 
 namespace transform2
 {
@@ -103,6 +103,13 @@ namespace transform2
         void transformPose(const int &transform_id,
                            const base_info::StampedPose &stamped_in,
                            base_info::StampedPose &stamped_out) const;
+
+        /** \brief Transform a Stamped Quaternion into the target frame
+        * This can throw anything a lookupTransform can throw as well
+         * as tf::InvalidArgument.*/
+        void transformQuaternion(const int &target_frame,
+                                 const base_info::StampedQuat &stamped_in,
+                                 base_info::StampedQuat &stamped_out) const;
 
     protected:
         std::vector<base_info::StampedTransform> tf2_buffer_;

@@ -78,7 +78,7 @@ pf_t *pf_alloc(int min_samples, int max_samples,
         set = pf->sets + j;
 
         set->sample_count = max_samples;
-        set->samples = (pf_sample_t *) calloc(max_samples, sizeof(pf_sample_t));
+        set->samples = (pf_sample_t *) calloc((size_t)max_samples, sizeof(pf_sample_t));
 
         for (i = 0; i < set->sample_count; i++)
         {
@@ -94,7 +94,8 @@ pf_t *pf_alloc(int min_samples, int max_samples,
 
         set->cluster_count = 0;
         set->cluster_max_count = max_samples;
-        set->clusters = (pf_cluster_t *) calloc(set->cluster_max_count, sizeof(pf_cluster_t));
+        set->clusters = (pf_cluster_t *) calloc((size_t)set->cluster_max_count,
+                                                sizeof(pf_cluster_t));
 
         set->mean = pf_vector_zero();
         set->cov = pf_matrix_zero();

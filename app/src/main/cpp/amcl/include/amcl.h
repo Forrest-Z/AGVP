@@ -12,13 +12,15 @@
 
 // Signal handling
 #include <signal.h>
+#include <sensor_msgs.h>
+#include <nav_msgs.h>
 
 #include "map.h"
 #include "pf.h"
 #include "amcl_odom.h"
 #include "amcl_laser.h"
 
-#include "../../transform/tf.h"
+#include "tf.h"
 
 // Pose hypothesis
 typedef struct
@@ -33,6 +35,12 @@ typedef struct
     pf_matrix_t pf_pose_cov;
 
 } amcl_hyp_t;
+
+typedef struct
+{
+    base_info::StampedPose &pose_;
+    float covariance_[36];
+} PoseWithCov;
 
 static const std::string scan_topic_ = "scan";
 
@@ -49,6 +57,41 @@ namespace amcl
         int process();
 
     private:
+        // Pose-generating function used to uniformly distribute particles over
+        // the map
+        pf_vector_t uniformPoseGenerator(void *arg);
+
+        // Callbacks
+        bool globalLocalizationCallback();
+        void nomotionUpdateCallback();
+        void setMapCallback();
+
+        void requestMap();
+
+        // Helper to get odometric pose from transform system
+        bool getOdomPose(base_info::StampedPose &odom_pose,
+                         double &x, double &y, double &yaw,
+                         const time_t &t, const int f);
+
+        //从参数服务器获取机器人初始位置
+        void updatePoseFromServer();
+
+        void laserReceived(const base_info::LaserScan &laser_scan);
+
+        void initialPoseReceived(const base_info::StampedPose &msg);
+
+        void handleInitialPoseMessage(const PoseWithCov &msg);
+
+        void mapReceived(const base_info::OccupancyGrid &msg);
+
+        void handleMapMessage(const base_info::OccupancyGrid &msg);
+
+        void freeMapDependentMemory();
+
+        map_t *convertMap(const base_info::OccupancyGrid &map_msg);
+
+        void applyInitialPose();
+
         transform2::Transformer tf_;
 
         bool sent_first_transform_;
@@ -60,6 +103,9 @@ namespace amcl
         int base_frame_id_;
         int global_frame_id_;
 
+        //paramater to store latest odom pose
+        base_info::StampedPose latest_odom_pose_;
+
         transform2::Transformer latest_tf_;
         bool latest_tf_valid_;
 
@@ -68,6 +114,7 @@ namespace amcl
 
         time_t save_pose_last_time;
         time_t save_pose_period;
+        time_t last_laser_received_ts_;
 
         map_t *map_;
         char *mapdata;
@@ -84,6 +131,9 @@ namespace amcl
         int resample_count_;
         double laser_min_range_;
         double laser_max_range_;
+        std::vector<AMCLLaser *> lasers_;
+        std::vector<bool> lasers_update_;
+        std::map<int, int> frame_to_laser_;
 
         int max_beams_, min_particles_, max_particles_;
         double alpha1_, alpha2_, alpha3_, alpha4_, alpha5_;
@@ -103,21 +153,13 @@ namespace amcl
         //used to temporarily let amcl update samples even when no motion occurs...
         bool m_force_update;
 
-        amcl_hyp_t* initial_pose_hyp_;
+        amcl_hyp_t *initial_pose_hyp_;
         bool first_map_received_;
         bool first_reconfigure_call_;
 
-        AMCLOdom* odom_;
-        AMCLLaser* laser_;
+        AMCLOdom *odom_;
+        AMCLLaser *laser_;
 
-        void requestMap();
-
-        // Helper to get odometric pose from transform system
-        bool getOdomPose(base_info::StampedPose &pose,
-                         double& x, double& y, double& yaw,
-                         const time_t &t, const std::string& f);
-
-        void updatePoseFromServer();
     };
 }
 

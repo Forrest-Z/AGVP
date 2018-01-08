@@ -7,8 +7,8 @@
 
 #include <string>
 
-#include "../Eigen/Dense"
-#include "../Eigen/Geometry"
+#include "Dense"
+#include "Geometry"
 
 namespace base_info
 {
@@ -62,6 +62,7 @@ namespace base_info
     typedef Eigen::Vector3d bd_Velocity;
     typedef Stamped<std::vector<bd_Point>> bd_Polygon;
     typedef Stamped<Eigen::Vector3d> StampedPose;
+    typedef Stamped<Eigen::Quaternion> StampedQuat;
     typedef Stamped<Eigen::Isometry3d> StampedTransform;
 
 }

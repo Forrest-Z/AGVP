@@ -39,7 +39,7 @@ using namespace amcl;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Default constructor
-AMCLLaser::AMCLLaser(size_t max_beams, map_t *map) : AMCLSensor(),
+AMCLLaser::AMCLLaser(int max_beams, map_t *map) : AMCLSensor(),
                                                      max_samples(0), max_obs(0),
                                                      temp_obs(NULL)
 {

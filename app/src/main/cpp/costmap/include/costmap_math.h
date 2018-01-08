@@ -42,7 +42,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "../../base_info/base_datatypes.h"
+#include "base_datatypes.h"
 
 namespace costmap_core
 {

@@ -32,7 +32,7 @@
 #ifndef COSTMAP_2D_OBSERVATION_H_
 #define COSTMAP_2D_OBSERVATION_H_
 
-#include "../../base_info/base_datatypes.h"
+#include "base_datatypes.h"
 
 namespace costmap_core
 {

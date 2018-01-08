@@ -31,10 +31,6 @@
 #include "pf_vector.h"
 #include "pf_kdtree.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // Forward declarations
 struct _pf_t;
 struct _rtk_fig_t;
@@ -186,9 +182,3 @@ int pf_update_converged(pf_t *pf);
 //sets the current set and pf converged values to zero
 void pf_init_converged(pf_t *pf);
 
-#ifdef __cplusplus
-}
-#endif
-
-
-#endif

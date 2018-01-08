@@ -40,7 +40,7 @@
 
 #include <opencv2/core/core.hpp>
 
-#include "../../base_info/nav_msgs.h"
+#include "nav_msgs.h"
 
 #include "costmap_layer.h"
 #include "LayeredCostmap.h"

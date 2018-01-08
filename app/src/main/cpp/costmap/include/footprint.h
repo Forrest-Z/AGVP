@@ -38,7 +38,7 @@
 #ifndef COSTMAP_2D_FOOTPRINT_H
 #define COSTMAP_2D_FOOTPRINT_H
 
-#include "../../base_info/base_datatypes.h"
+#include "base_datatypes.h"
 
 namespace costmap_core
 {

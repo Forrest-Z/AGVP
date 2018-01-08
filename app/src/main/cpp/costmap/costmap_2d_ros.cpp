@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 
-#include "../base_info/global_methods.h"
+#include "global_methods.h"
 #include "include/costmap_2d_ros.h"
 #include "include/static_layer.h"
 #include "include/obstacle_layer.h"

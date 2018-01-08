@@ -44,8 +44,8 @@
 
 #include "footprint.h"
 #include "observation.h"
-#include "../../base_info/sensor_msgs.h"
-#include "../../base_info/nav_msgs.h"
+#include "sensor_msgs.h"
+#include "nav_msgs.h"
 
 namespace costmap_core
 {

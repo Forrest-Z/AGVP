@@ -28,6 +28,6 @@ namespace base_info
         // device does not provide intensities, please leave the array empty.
     };
 
-    typedef Stamped <LaserScanData> LaserScan;
+    typedef Stamped<LaserScanData> LaserScan;
 }
 #endif //AGVP_SENSOR_MSGS_H

@@ -54,4 +54,11 @@ namespace transform2
         stamped_out.stamp_ = transform.stamp_;
         stamped_out.frame_id_ = transform_id;
     }
+
+    void Transformer::transformQuaternion(const int &target_frame,
+                                          const base_info::StampedQuat &stamped_in,
+                                          base_info::StampedQuat &stamped_out) const
+    {
+
+    }
 }

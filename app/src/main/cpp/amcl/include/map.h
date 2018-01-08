@@ -34,10 +34,6 @@
 struct _rtk_fig_t;
 
 
-// Limits
-#define MAP_WIFI_MAX_LEVELS 8
-
-
 // Description for a single map cell.
 typedef struct
 {
@@ -46,9 +42,6 @@ typedef struct
 
     // Distance to the nearest occupied cell
     double occ_dist;
-
-    // Wifi levels
-    //int wifi_levels[MAP_WIFI_MAX_LEVELS];
 
 } map_cell_t;
 

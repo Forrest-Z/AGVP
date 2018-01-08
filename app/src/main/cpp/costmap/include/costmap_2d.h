@@ -13,8 +13,8 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/core.hpp>
 
-#include "../../log_utils.h"
-#include "../../transform/tf.h"
+#include "log_utils.h"
+#include "tf.h"
 
 namespace costmap_core
 {
