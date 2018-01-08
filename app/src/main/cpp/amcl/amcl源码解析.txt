@@ -1,0 +1,60 @@
+AMCL算法 
+Ros代码结构： 
+AmclNode::AmclNode() 
+	updatePoseFromServer  //从参数服务器获取机器人初始位置  
+	requestMap  //从参数服务器获取地图信息，初始化粒子滤波器     
+		handleMapMessage 
+			freeMapDependentMemory //清空map_,pf_,odom_,laser_ 
+			convertMap              //保存载入的地图信息 
+			pf_alloc                  //创建粒子滤波器 
+			updatePoseFromServer    //载入预设的均值和方差 
+				pf_init                   //初始化概率密度函数 
+				pf_kdtree_clear 
+				pf_pdf_gaussian_alloc  //根据设置的均值和方差初始化概率密度函数 
+				For (sample_count) 
+					pf_pdf_gaussian_sample //根据概率密度函数设置粒子的采样位置 
+					pf_kdtree_insert         //将采样的粒子插入
+				kdtree pf_pdf_gaussian_free        //清空概率密度函数 
+				pf_cluster_stats              
+					pf_kdtree_cluster        //对kdtree中的采样粒子进行聚类 将粒子滤波器中的粒子集和粒子群集初始化为0 
+					For (sample_count) 
+						pf_kdtree_get_cluster  //得到当前粒子所属的集群编号 
+						计算x,y,cos(),sin(),xx, xy, yx, yy的累计值 
+					For (cluster_count) 
+						//对每个集群的累计值进行归一化，得到均值和方差 对每个粒子集的累计值进行归一化，得到均值和方差 
+				pf_init_converged  //将粒子滤波器和粒子集的收敛度置为0 
+			new AMCLOdom 
+			AMCLOdom：：SetModel  //设置里程计模型参数 
+			new AMCLLaser          //载入参数和地图
+			map_ AMCLLaser：：SetModelLikelihoodField  //设置laser模型参数 
+				map_update_cspace   //根据离障碍物的距离设置map_->cells的值  
+	laserReceived 
+		tf订阅laser在base_footprint下的相对位置 
+			SetLaserPose  //设置lasers_[idx]的laser_pose 得到odom在base_footprint下的相对位置 
+			将当前odom的位置与上一次更新时odom的位置比较，大于设定阈值，则将更新标记置为true 
+		UpdateAction  //利用里程计模型和当前数据对pf_采样粒子的位置进行更新 将laser数据转换到base_footprint下 
+		UpdateSensor  //用laser模型和当前数据更新pf_ 
+			pf_update_sensor 
+				LikelihoodFieldModel 
+					For (sample_count) 
+						pf_vector_coord_add For (range_count) 
+						计算laser映射到map中的位置，得到该位置离障碍物的距离 
+						根据距离得到一个权值，更新采样粒子的权重，并得到total_weight 
+					对粒子权重归一化 更新w_slow和w_fast
+		pf_update_resample  //对粒子进行重采样 
+			分别获取当前粒子采样集和待存放新的采样集的sets指针 遍历当前粒子采样集，得到权重积分列表 清空待存放新的采样集 
+			For (max_samples) 
+				If (drand48() < w_diff) 
+				随机产生一个位置作为粒子位置 
+				Else 
+				将当前粒子权值累计值小于随机数的粒子保留为新的粒子 每个粒子权值相同，1/sample_count 插入kdtree 
+			pf_cluster_stats  
+				pf_kdtree_cluster        //对kdtree中的采样粒子进行聚类 将粒子滤波器中的粒子集和粒子群集初始化为0 
+				For (sample_count) 
+					pf_kdtree_get_cluster  //得到当前粒子所属的集群编号 
+					计算x,y,cos(),sin(),xx, xy, yx, yy的累计值 
+				For (cluster_count) 
+				对每个集群的累计值进行归一化，得到均值和方差 对每个粒子集的累计值进行归一化，得到均值和方差 
+			pf_update_converged  //判断粒子滤波器是否收敛 
+		pf_get_cluster_stats  //获取粒子集群的均值方差权重 
+		将权重最大的集群的均值作为估计值
